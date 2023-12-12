@@ -30,6 +30,7 @@ const getcategory = async (req, res) => {
 
 // create a new category
 const createCategory = async (req,res) => {
+    console.log(req.body);
     const {categoryName, subcategoryName} = req.body;
     try{
         let category = await Category.findOne({catname: categoryName});
@@ -59,18 +60,35 @@ const createCategory = async (req,res) => {
 
 // delete a category
 const deleteCategory = async (req,res) => {
-    const { id } = req.params;
+    const { id, subcatid } = req.params;
 
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: "invalid id"});
     }
 
-    const category = await Category.findOneAndDelete({_id: id});
+    if(subcatid != 0){
+        if(!mongoose.Types.ObjectId.isValid(subcatid)){
+            return res.status(404).json({error: "invalid subcatid"});
+        }
+        const category = await Category.findOneAndUpdate(
+            { _id: id },
+            { $pull: { subcategories: { _id: subcatid } } },
+            { new: true }
+        );
 
-    if(!category){
-        return req.status(400).json({error: "Error While Deleting!!"});
+        if (!category) {
+            return res.status(400).json({ error: "Error while deleting subcategory" });
+        }
+        res.status(200).json(category);
+
+    }else{
+        const category = await Category.findOneAndDelete({_id: id},{ new: true});
+
+        if(!category){
+            return req.status(400).json({error: "Error While Deleting!!"});
+        }
+        res.status(200).json(category);
     }
-    res.status(200).json(category);
 
 }
 
@@ -78,22 +96,50 @@ const deleteCategory = async (req,res) => {
 
 // update a category
 const updateCategory = async (req, res) => {
-    const { id } = req.params;
+    const { id, subcatid } = req.params;
 
 
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: "invalid id"});
     }
 
-    const category = await Category.findOneAndUpdate({_id: id}, {
-        ...req.body
-    });
+    if(subcatid != 0){
+        
+        if(!mongoose.Types.ObjectId.isValid(subcatid)){
+            return res.status(404).json({error: "invalid subcatid"});
+        }
 
-    if(!category){
-        return req.status(400).json({error: "Error While Updating!!"});
+        const category = await Category.findOne({ _id: id });
+
+        if (!category) {
+            return res.status(404).json({ error: "Category not found" });
+        }
+
+        const getSubcategory = category.subcategories.find(sub => sub._id == subcatid);
+
+        if (!getSubcategory) {
+            return res.status(404).json({ error: "Subcategory not found" });
+        }
+        Object.assign(getSubcategory, req.body);
+
+        try {
+            await category.save();
+            res.status(200).json(category);
+        } catch (error) {
+            res.status(500).json({ error: "Error while updating subcategory" });
+        }
+        
+    }else{
+        const category = await Category.findOneAndUpdate({_id: id}, {
+            ...req.body
+        },{ new: true});
+    
+        if(!category){
+            return req.status(400).json({error: "Error While Updating!!"});
+        }
+    
+        res.status(200).json(category);
     }
-
-    res.status(200).json(category);
      
 }
 

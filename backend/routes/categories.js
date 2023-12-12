@@ -12,8 +12,8 @@ router.get('/:id', getcategory);
 router.post('/', createCategory);
 
 // delete a category
-router.delete('/:id', deleteCategory);
+router.delete('/:id/:subcatid', deleteCategory);
 
 // update a category
-router.patch('/:id', updateCategory);
+router.patch('/:id/:subcatid', updateCategory);
 module.exports = router;
