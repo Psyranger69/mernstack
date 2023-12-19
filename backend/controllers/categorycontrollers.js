@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 // get all categories
 const getCategories = async (req,res) => {
-    const categories = await Category.find({}).sort({createdAt: -1});
+    const categories = await Category.find({}).sort({catname: 1});
     
     res.status(200).json(categories);
 }

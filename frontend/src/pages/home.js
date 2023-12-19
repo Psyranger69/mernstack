@@ -1,4 +1,5 @@
 import { useEffect, useState} from 'react';
+import  CategoryDetails  from '../components/CategoryDetails';
 const Home = () => {
 
     const [categories, setCategories] = useState(null);
@@ -18,16 +19,19 @@ const Home = () => {
 
     return(
         <div className="home">
+            <ol><h2>Parent Categories</h2>
         {categories &&
             categories.map((category) => (
-                <div className='row'>
-                    <p key={category._id}>{category.catname}</p>
-                    {category.subcategories &&
-                        category.subcategories.map((subcategory) => (
-                            <p key={subcategory._id}>{subcategory.subcatname}</p>
-                        ))}
-                </div>
+                <CategoryDetails key={category._id} category={category}></CategoryDetails>
+                // <div className='row'>
+                //     <p key={category._id}>{category.catname}</p>
+                //     {category.subcategories &&
+                //         category.subcategories.map((subcategory) => (
+                //             <p key={subcategory._id}>{subcategory.subcatname}</p>
+                //         ))}
+                // </div>
             ))}
+            </ol>
     </div>
     
     )
