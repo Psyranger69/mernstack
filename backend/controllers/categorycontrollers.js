@@ -1,6 +1,26 @@
 const  {Category, Subcategory} = require('../models/categorymodel');
 const mongoose = require('mongoose');
 
+// for update all existing field which don't have description field
+// Category.find({ description: { $exists: false } })
+// .then(categories => {
+// categories.forEach(async category => {
+//     try {
+//     await Category.updateOne(
+//         { _id: category._id },
+//         { $set: { description: 'Default Description' } }
+//     );
+//     console.log(`Category updated: ${category._id}`);
+//     } catch (updateError) {
+//     console.error(`Error updating category ${category._id}:`, updateError);
+//     }
+// });
+// })
+// .catch(error => {
+// console.error('Error finding categories:', error);
+// });
+
+
 // get all categories
 const getCategories = async (req,res) => {
     const categories = await Category.find({}).sort({catname: 1});
@@ -31,24 +51,30 @@ const getcategory = async (req, res) => {
 // create a new category
 const createCategory = async (req,res) => {
     console.log(req.body);
-    const {categoryName, subcategoryName} = req.body;
+    const {categoryName, description, subcategoryName} = req.body;
     try{
         let category = await Category.findOne({catname: categoryName});
 
         if(!category){
-            category = await Category.create({catname: categoryName});
+            category = await Category.create({catname: categoryName, description: description});
+        }else if(category && subcategoryName == ""){
+            return res.status(400).json({ error: "Category already exists." });
+        }else{
+            let subcategory = category.subcategories.find(sub => sub.subcatname === subcategoryName);
+
+            if (!subcategory) {
+                subcategory = await Subcategory.create({ subcatname: subcategoryName });
+            }else{
+                return res.status(400).json({ error: "Subcategory already exists in this category." });
+            }
+            
+            category.subcategories.push(subcategory);
+            await category.save();
+
+            res.status(200).json(category);
         }
 
-        let subcategory = await Subcategory.findOne({subcatname: subcategoryName});
-
-        if (!subcategory) {
-        subcategory = await Subcategory.create({subcatname: subcategoryName});
-        }
         
-        category.subcategories.push(subcategory);
-        await category.save();
-
-        res.status(200).json(category);
     }
     catch(error){
         res.status(400).json({error: error.message});

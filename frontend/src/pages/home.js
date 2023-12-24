@@ -3,10 +3,10 @@ import  CategoryDetails  from '../components/CategoryDetails';
 const Home = () => {
 
     const [categories, setCategories] = useState(null);
-
+// "proxy": "http://localhost:4000",
     useEffect(() => {
         const fetchCategories = async () => {
-            const response = await fetch('/api/categories');
+            const response = await fetch('http://localhost:4000/api/categories');
             console.log(response);
             const json = await response.json();
             if(response.ok){
@@ -20,17 +20,9 @@ const Home = () => {
     return(
         <div className="home">
             <ol><h2>Parent Categories</h2>
-        {categories &&
-            categories.map((category) => (
-                <CategoryDetails key={category._id} category={category}></CategoryDetails>
-                // <div className='row'>
-                //     <p key={category._id}>{category.catname}</p>
-                //     {category.subcategories &&
-                //         category.subcategories.map((subcategory) => (
-                //             <p key={subcategory._id}>{subcategory.subcatname}</p>
-                //         ))}
-                // </div>
-            ))}
+                {categories && categories.map((category) => (
+                    <CategoryDetails key={category._id} category={category}></CategoryDetails>
+                ))}
             </ol>
     </div>
     

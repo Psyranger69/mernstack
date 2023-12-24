@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const subcategoryschema = new Schema({
     subcatname:{
         type: String,
-        required: true,
+        // required: true,
     },
     
 }, {timestamps:true});
@@ -19,6 +19,9 @@ const categoryschema = new Schema({
     catname:{
         type: String,
         required: true,
+    },
+    description:{
+        type: String
     },
     subcategories: [subcategoryschema],
 }, {timestamps:true});
