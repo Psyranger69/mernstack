@@ -1,24 +1,60 @@
 const  {Category, Subcategory} = require('../models/categorymodel');
 const mongoose = require('mongoose');
 
-// for update all existing field which don't have description field
-// Category.find({ description: { $exists: false } })
-// .then(categories => {
-// categories.forEach(async category => {
-//     try {
-//     await Category.updateOne(
-//         { _id: category._id },
-//         { $set: { description: 'Default Description' } }
-//     );
-//     console.log(`Category updated: ${category._id}`);
-//     } catch (updateError) {
-//     console.error(`Error updating category ${category._id}:`, updateError);
+// for update all category, existing field which don't have description field
+// Category.find({
+//     $or: [
+//       { description: { $exists: false } },
+//     //   { field2: { $exists: false } },
+//     //   { field3: { $exists: false } }
+//       // Add more field checks as needed
+//     ]
+//   })
+//   .then(async categories => {
+//     for (const category of categories) {
+//       try {
+//         const updateFields = {
+//           description: 'Default Description',
+//         //   field2: 'Value for Field 2',
+//         //   field3: 12345
+//         };
+  
+//         await Category.updateOne(
+//           { _id: category._id },
+//           { $set: updateFields }
+//         );
+  
+//         console.log(`Category updated: ${category._id}`);
+//       } catch (updateError) {
+//         console.error(`Error updating category ${category._id}:`, updateError);
+//       }
 //     }
-// });
-// })
-// .catch(error => {
-// console.error('Error finding categories:', error);
-// });
+//   })
+//   .catch(error => {
+//     console.error('Error finding categories:', error);
+//   });
+
+// for update all subcategory, existing field which don't have description field
+
+// Category.find({ "subcategories": { $elemMatch: { $or: [{ description: { $exists: false } }] } } })
+//     .then(async categories => {
+//         for (const category of categories) {
+//             for (const subcategory of category.subcategories) {
+//                 if (!subcategory.description) {
+//                     subcategory.description = "this is default subcategory value";
+//                     // subcategory.notes = "this is default subcategory value";
+//                 }
+//             }
+//             await category.save();
+//             console.log(`Category ${category._id} updated.`);
+//         }
+//     })
+//     .catch(error => {
+//         console.log(`Error finding categories:`, error);
+//     });
+
+
+  
 
 
 // get all categories
@@ -57,7 +93,7 @@ const createCategory = async (req,res) => {
 
         if(!category){
             category = await Category.create({catname: categoryName, description: description});
-        }else if(category && subcategoryName == ""){
+        }else if(category && (subcategoryName == "" || !subcategoryName)){
             return res.status(400).json({ error: "Category already exists." });
         }else{
             let subcategory = category.subcategories.find(sub => sub.subcatname === subcategoryName);
