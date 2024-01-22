@@ -104,19 +104,12 @@ const getcategory = async (req, res) => {
 
 // create a new category
 const createCategory = async (req, res) => {
-  // console.log(req.body);
-  const { name, description, categoryName, subcategoryName, stat } = req.body;
+  console.log(req.body);
   let image = "";
-
-  if (req.file) {
-    image = req.file.filename;
-  } else {
-    image = "noimage.jpg";
-  }
-  // console.log(image);
+  const { name, description, categoryName, subcategoryName, stat } = req.body;
   try {
     let category = "";
-    if (categoryName != "0") {
+    if (categoryName !== "0" && categoryName !== "") {
       category = await Category.findOne({
         $or: [
           { _id: categoryName },
@@ -147,17 +140,17 @@ const createCategory = async (req, res) => {
         if (err) {
           return res.status(500).json({ error: "File upload failed." });
         }
-
-        const image = req.file ? req.file.filename : "noimage.jpg";
-
-        category = await Category.create({
-          catname: name,
-          description: description,
-          image: image,
-          status: stat,
-        });
-        res.status(200).json(category);
+        // console.log(req.file);
+        image = req.file ? req.file.filename : "noimage.jpg";
       });
+
+      category = await Category.create({
+        catname: name,
+        description: description,
+        image: image,
+        status: stat,
+      });
+      res.status(200).json(category);
     } else if (
       category &&
       (subcategoryName == "0" || !subcategoryName || subcategoryName == "")
@@ -169,7 +162,7 @@ const createCategory = async (req, res) => {
           sub._id === subcategoryName ||
           sub.subcatname.match(new RegExp("^" + name + "$", "i"))
       );
-      console.log(new RegExp("^" + name + "$", "i"));
+      // console.log(new RegExp("^" + name + "$", "i"));
       if (!subcategory) {
         subcategory = await Subcategory.create({
           subcatname: name,

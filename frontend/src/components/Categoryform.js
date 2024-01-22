@@ -11,35 +11,30 @@ const Categoryform = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("categoryName", category);
-    formData.append("subcategoryName", subcategory);
-    formData.append("image", image);
-    formData.append("stat", stat);
-
-    const response = await fetch("http://localhost:4000/api/categories", {
-      method: "POST",
-      body: formData,
-    });
-
-    // const newCat = {
-    //   name,
-    //   description,
-    //   categoryName: category,
-    //   subcategoryName: subcategory,
-    //   image,
-    //   stat,
-    // };
+    // const formData = new FormData();
+    // formData.append("image", image);
 
     // const response = await fetch("http://localhost:4000/api/categories", {
     //   method: "POST",
-    //   body: JSON.stringify(newCat),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
+    //   body: formData,
     // });
+
+    const newCat = {
+      name,
+      description,
+      categoryName: category,
+      subcategoryName: subcategory,
+      image,
+      stat,
+    };
+    console.log(image);
+    const response = await fetch("http://localhost:4000/api/categories", {
+      method: "POST",
+      body: JSON.stringify(newCat),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     const json = await response.json();
 
     if (!response.ok) {
