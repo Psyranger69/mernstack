@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useEffect } from "react";
 const Categoryform = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -7,34 +7,25 @@ const Categoryform = () => {
   const [subcategory, setSubcategory] = useState("");
   const [image, setImage] = useState("");
   const [stat, setStat] = useState(1);
+  const [categoryOptions, setCategoryOptions] = useState([]);
   const [error, setError] = useState("");
 
+  // ---------------handle submit request-------------
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // const formData = new FormData();
-    // formData.append("image", image);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("categoryName", category);
+    formData.append("subcategoryName", subcategory);
+    formData.append("image", image);
+    formData.append("stat", stat);
 
-    // const response = await fetch("http://localhost:4000/api/categories", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-
-    const newCat = {
-      name,
-      description,
-      categoryName: category,
-      subcategoryName: subcategory,
-      image,
-      stat,
-    };
-    console.log(image);
     const response = await fetch("http://localhost:4000/api/categories", {
       method: "POST",
-      body: JSON.stringify(newCat),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      body: formData,
     });
+
     const json = await response.json();
 
     if (!response.ok) {
@@ -51,6 +42,20 @@ const Categoryform = () => {
       console.log("new category added", json);
     }
   };
+  useEffect(() => {
+    const getCategoriesddl = async () => {
+      const response = await fetch("http://localhost:4000/api/categories");
+      const options = await response.json();
+      try {
+        if (options) {
+          setCategoryOptions(options);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    getCategoriesddl();
+  }, []);
 
   return (
     <form className="createCategory" onSubmit={handleSubmit}>
@@ -81,6 +86,11 @@ const Categoryform = () => {
       >
         <option value="">Select Category</option>
         <option value="0">Parent</option>
+        {categoryOptions.map((option) => (
+          <option key={option._id} value={option.catname}>
+            {option.catname}
+          </option>
+        ))}
       </select>
 
       <label>Sub-Category: </label>

@@ -3,19 +3,13 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const categoryRoutes = require("./routes/categories");
-// const bodyParser = require("body-parser");
 
 // express app
 const app = express();
-// app.use(
-//   bodyParser.urlencoded({
-//     extended: false,
-//   })
-// );
 // middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 app.use((req, res, next) => {
   console.log(req.path, req.method);
   next();
