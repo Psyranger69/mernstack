@@ -97,7 +97,7 @@ const createCategory = async (req, res) => {
           return res.status(400).json({ error: "Category already exists." });
         } else {
           let subcategory = "";
-          if (subcategoryName !== 0) {
+          if (subcategoryName !== "0") {
             if (!mongoose.Types.ObjectId.isValid(subcategoryName)) {
               return res.status(400).json({ error: "Invalid subcategoryId" });
             }
