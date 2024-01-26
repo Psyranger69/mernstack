@@ -8,6 +8,7 @@ const Categoryform = () => {
   const [image, setImage] = useState("");
   const [stat, setStat] = useState(1);
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const [subcategoryOptions, setSubCategoryOptions] = useState([]);
   const [error, setError] = useState("");
 
   // ---------------handle submit request-------------
@@ -42,6 +43,7 @@ const Categoryform = () => {
       console.log("new category added", json);
     }
   };
+
   useEffect(() => {
     const getCategoriesddl = async () => {
       const response = await fetch("http://localhost:4000/api/categories");
@@ -56,6 +58,26 @@ const Categoryform = () => {
     };
     getCategoriesddl();
   }, []);
+
+  // onchange function for parent cat to get subcat values
+  const handlecatchange = async (e) => {
+    setCategory(e.target.value);
+    if (e.target.value !== "0") {
+      const response = await fetch(
+        "http://localhost:4000/api/categories/" + e.target.value
+      );
+      const subcatoptions = await response.json();
+      try {
+        if (subcatoptions) {
+          setSubCategoryOptions(subcatoptions);
+        }
+      } catch (error) {
+        console.log("Error fetching subcategories:", error);
+      }
+    } else {
+      setSubCategoryOptions("");
+    }
+  };
 
   return (
     <form className="createCategory" onSubmit={handleSubmit}>
@@ -79,15 +101,11 @@ const Categoryform = () => {
       ></textarea>
 
       <label>Category: </label>
-      <select
-        id="ddlcategory"
-        onChange={(e) => setCategory(e.target.value)}
-        value={category}
-      >
+      <select id="ddlcategory" onChange={handlecatchange} value={category}>
         <option value="">Select Category</option>
         <option value="0">Parent</option>
         {categoryOptions.map((option) => (
-          <option key={option._id} value={option.catname}>
+          <option key={option._id} value={option._id}>
             {option.catname}
           </option>
         ))}
@@ -101,6 +119,13 @@ const Categoryform = () => {
       >
         <option value="">Select Sub-Category</option>
         <option value="0">none</option>
+        {subcategoryOptions && subcategoryOptions.subcategories
+          ? subcategoryOptions.subcategories.map((options) => (
+              <option key={options._id} value={options._id}>
+                {options.subcatname}
+              </option>
+            ))
+          : ""}
       </select>
 
       <label>Image: </label>

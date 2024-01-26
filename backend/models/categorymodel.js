@@ -2,7 +2,27 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-// schema for new subcateogry
+// scheme for new subsubcategory
+const subsubcategoryschema = new Schema(
+  {
+    subsubcatname: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+    image: {
+      type: String,
+    },
+    status: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+const Subsubcategory = mongoose.model("Subsubcategory", subsubcategoryschema);
+
+// schema for new subcategory
 const subcategoryschema = new Schema(
   {
     subcatname: {
@@ -18,6 +38,7 @@ const subcategoryschema = new Schema(
     status: {
       type: String,
     },
+    subsubcategories: [subsubcategoryschema],
   },
   { timestamps: true }
 );
@@ -48,4 +69,4 @@ const categoryschema = new Schema(
 
 const Category = mongoose.model("Category", categoryschema);
 
-module.exports = { Subcategory, Category };
+module.exports = { Subsubcategory, Subcategory, Category };

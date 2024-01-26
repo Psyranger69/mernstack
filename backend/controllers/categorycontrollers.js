@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
-const { Category, Subcategory } = require("../models/categorymodel");
+const {
+  Category,
+  Subcategory,
+  Subsubcategory,
+} = require("../models/categorymodel");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const fs = require("fs");
@@ -53,15 +57,19 @@ const createCategory = async (req, res) => {
         req.body;
       try {
         let category = "";
-        if (categoryName !== "0" && categoryName !== "") {
+        if (categoryName !== "0") {
+          if (!mongoose.Types.ObjectId.isValid(categoryName)) {
+            return res.status(400).json({ error: "Invalid categoryId" });
+          }
           category = await Category.findOne({
             $or: [
               { _id: categoryName },
-              {
-                catname: { $regex: new RegExp("^" + name + "$", "i") },
-              },
+              // {
+              //   catname: { $regex: new RegExp("^" + name + "$", "i") },
+              // },
             ],
           });
+          // console.log(category);
         } else {
           category = await Category.findOne({
             catname: { $regex: new RegExp("^" + name + "$", "i") },
@@ -76,10 +84,7 @@ const createCategory = async (req, res) => {
             status: stat,
           });
           res.status(200).json(category);
-        } else if (
-          category &&
-          (subcategoryName == "0" || !subcategoryName || subcategoryName == "")
-        ) {
+        } else if (category && categoryName == "0") {
           if (image !== "noimage.jpg") {
             fs.unlink("uploads/" + image, (err) => {
               if (err) {
@@ -91,11 +96,22 @@ const createCategory = async (req, res) => {
           }
           return res.status(400).json({ error: "Category already exists." });
         } else {
-          let subcategory = category.subcategories.find(
-            (sub) =>
-              sub._id === subcategoryName ||
+          let subcategory = "";
+          if (subcategoryName !== 0) {
+            if (!mongoose.Types.ObjectId.isValid(subcategoryName)) {
+              return res.status(400).json({ error: "Invalid subcategoryId" });
+            }
+            // console.log(category.subcategories);
+            subcategory = category.subcategories.find(
+              (sub) => sub._id.toString() === subcategoryName.toString()
+              // &&
+              // sub.subcatname.match(new RegExp("^" + name + "$", "i"))
+            );
+          } else {
+            subcategory = category.subcategories.find((sub) =>
               sub.subcatname.match(new RegExp("^" + name + "$", "i"))
-          );
+            );
+          }
           if (!subcategory) {
             subcategory = await Subcategory.create({
               subcatname: name,
@@ -103,7 +119,11 @@ const createCategory = async (req, res) => {
               image: image,
               status: stat,
             });
-          } else {
+            category.subcategories.push(subcategory);
+            await category.save();
+
+            res.status(200).json(category);
+          } else if (subcategory && subcategoryName == 0) {
             if (image !== "noimage.jpg") {
               fs.unlink("uploads/" + image, (err) => {
                 if (err) {
@@ -116,45 +136,93 @@ const createCategory = async (req, res) => {
             return res
               .status(400)
               .json({ error: "Subcategory already exists in this category." });
+          } else {
+            let subsubcategory = "";
+            subsubcategory = subcategory.subsubcategories.find((subsub) =>
+              subsub.subsubcatname.match(new RegExp("^" + name + "$", "i"))
+            );
+
+            if (!subsubcategory) {
+              subsubcategory = await Subsubcategory.create({
+                subsubcatname: name,
+                description: description,
+                image: image,
+                status: stat,
+              });
+              subcategory.subsubcategories.push(subsubcategory);
+              await category.save();
+
+              res.status(200).json(category);
+            } else {
+              if (image !== "noimage.jpg") {
+                fs.unlink("uploads/" + image, (err) => {
+                  if (err) {
+                    console.error("Error deleting file:", err);
+                  } else {
+                    console.log("File deleted successfully");
+                  }
+                });
+              }
+              return res.status(400).json({
+                error: "Subsubcategory already exists in this Subcategory.",
+              });
+            }
           }
-
-          category.subcategories.push(subcategory);
-          await category.save();
-
-          res.status(200).json(category);
         }
       } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ error: error.message + "  error catched" });
       }
-      res.json({ msg: "POST a new category." });
+      // res.json({ msg: "POST a new category." });
     }
   });
 };
 
 // -------------------delete a category-----------------------
 const deleteCategory = async (req, res) => {
-  const { id, subcatid } = req.params;
+  const { id, subcatid, subsubcatid } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ error: "invalid id" });
+    return res.status(404).json({ error: "Invalid category id" });
   }
 
-  if (subcatid != 0) {
+  if (subcatid !== "0") {
     if (!mongoose.Types.ObjectId.isValid(subcatid)) {
-      return res.status(404).json({ error: "invalid subcatid" });
+      return res.status(404).json({ error: "Invalid subcategory id" });
     }
-    const category = await Category.findOneAndUpdate(
-      { _id: id },
-      { $pull: { subcategories: { _id: subcatid } } },
-      { new: true }
-    );
 
-    if (!category) {
-      return res
-        .status(400)
-        .json({ error: "Error while deleting subcategory" });
+    if (subsubcatid !== "0") {
+      if (!mongoose.Types.ObjectId.isValid(subsubcatid)) {
+        return res.status(404).json({ error: "Invalid subsubcategory id" });
+      }
+
+      const category = await Category.findOneAndUpdate(
+        { _id: id, "subcategories._id": subcatid },
+        { $pull: { "subcategories.$.subsubcategories": { _id: subsubcatid } } },
+        { new: true }
+      );
+
+      if (!category) {
+        return res
+          .status(400)
+          .json({ error: "Error while deleting subsubcategory" });
+      }
+
+      res.status(200).json(category);
+    } else {
+      const category = await Category.findOneAndUpdate(
+        { _id: id },
+        { $pull: { subcategories: { _id: subcatid } } },
+        { new: true }
+      );
+
+      if (!category) {
+        return res
+          .status(400)
+          .json({ error: "Error while deleting subcategory" });
+      }
+
+      res.status(200).json(category);
     }
-    res.status(200).json(category);
   } else {
     const category = await Category.findOneAndDelete(
       { _id: id },
@@ -162,8 +230,9 @@ const deleteCategory = async (req, res) => {
     );
 
     if (!category) {
-      return req.status(400).json({ error: "Error While Deleting!!" });
+      return res.status(400).json({ error: "Error while deleting category" });
     }
+
     res.status(200).json(category);
   }
 };
