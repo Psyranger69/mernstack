@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useEffect } from "react";
+import { useCategoriesContext } from "../hooks/useCategoriesContext";
 const Categoryform = () => {
+  const { categories, dispatch } = useCategoriesContext();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [image, setImage] = useState("");
   const [stat, setStat] = useState(1);
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [subcategoryOptions, setSubCategoryOptions] = useState([]);
+  // const [categoryOptions, setCategoryOptions] = useState([]); // for category dropdown
+  const [subcategoryOptions, setSubCategoryOptions] = useState([]); // for subcategory dropdown
   const [error, setError] = useState("");
 
   // ---------------handle submit request-------------
@@ -40,24 +42,30 @@ const Categoryform = () => {
       setImage("");
       setStat(1);
       setError("");
-      console.log("new category added", json);
+      // console.log("new category added", json);
+      if (category === "0" && subcategory === "0") {
+        dispatch({ type: "CREATE_CATEGORY", payload: json });
+      } else {
+        dispatch({ type: "CREATE_SUB_CATEGORY", payload: json });
+      }
     }
   };
 
   useEffect(() => {
     const getCategoriesddl = async () => {
       const response = await fetch("http://localhost:4000/api/categories");
-      const options = await response.json();
+      const json = await response.json();
       try {
-        if (options) {
-          setCategoryOptions(options);
+        if (response.ok) {
+          // setCategoryOptions(json);
+          dispatch({ type: "SET_CATEGORIES", payload: json });
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
     getCategoriesddl();
-  }, []);
+  }, [dispatch]);
 
   // onchange function for parent cat to get subcat values
   const handlecatchange = async (e) => {
@@ -104,11 +112,12 @@ const Categoryform = () => {
       <select id="ddlcategory" onChange={handlecatchange} value={category}>
         <option value="">Select Category</option>
         <option value="0">Parent</option>
-        {categoryOptions.map((option) => (
-          <option key={option._id} value={option._id}>
-            {option.catname}
-          </option>
-        ))}
+        {categories &&
+          categories.map((option) => (
+            <option key={option._id} value={option._id}>
+              {option.catname}
+            </option>
+          ))}
       </select>
 
       <label>Sub-Category: </label>
