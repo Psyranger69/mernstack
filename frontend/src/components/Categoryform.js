@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useEffect } from "react";
 import { useCategoriesContext } from "../hooks/useCategoriesContext";
+import { Modal } from "bootstrap";
 const Categoryform = () => {
   const { categories, dispatch } = useCategoriesContext();
   const [name, setName] = useState("");
@@ -42,6 +43,10 @@ const Categoryform = () => {
       setImage("");
       setStat(2);
       setError("");
+      const catmodal = new Modal(
+        document.getElementById("categorycreationmodal")
+      );
+      catmodal.hide();
       // console.log("new category added", json);
       if (category === "0" && subcategory === "0") {
         dispatch({ type: "CREATE_CATEGORY", payload: json });

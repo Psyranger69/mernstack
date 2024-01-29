@@ -7,10 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const CategoryDetails = ({ categories }) => {
   const { dispatch } = useCategoriesContext();
   const [expandedRows, setExpandedRows] = useState(null);
-  const handledelete = async (e) => {
-    var pid = e.target.dataset.pid;
-    var sid = e.target.dataset.sid;
-    var ssid = e.target.dataset.ssid;
+  const handledelete = async (event) => {
+    const pid = event.currentTarget.getAttribute("data-pid");
+    const sid = event.currentTarget.getAttribute("data-sid");
+    const ssid = event.currentTarget.getAttribute("data-ssid");
+    console.log(event.target.dataset);
     const response = await fetch(
       "http://localhost:4000/api/categories/" + pid + "/" + sid + "/" + ssid,
       {
@@ -45,27 +46,27 @@ const CategoryDetails = ({ categories }) => {
   const allowExpansion = (rowData) => {
     return rowData.subcategories.length > 0;
   };
-  // const cols = [
-  //   { field: "catname", header: "Name" },
-  //   { field: "description", header: "Description" },
-  //   { field: "image", header: "Image" },
-  //   { field: "status", header: "Status" },
-  // ];
+  const cols = [
+    { field: "catname", header: "Name" },
+    { field: "description", header: "Description" },
+    { field: "image", header: "Image" },
+    { field: "status", header: "Status" },
+  ];
 
-  // const exportColumns = cols.map((col) => ({
-  //   title: col.header,
-  //   dataKey: col.field,
-  // }));
-  // const exportPdf = () => {
-  //   import("jspdf").then((jsPDF) => {
-  //     import("jspdf-autotable").then(() => {
-  //       const doc = new jsPDF.default(0, 0);
+  const exportColumns = cols.map((col) => ({
+    title: col.header,
+    dataKey: col.field,
+  }));
+  const exportPdf = () => {
+    import("jspdf").then((jsPDF) => {
+      import("jspdf-autotable").then(() => {
+        const doc = new jsPDF.default(0, 0);
 
-  //       doc.autoTable(exportColumns, categories);
-  //       doc.save("categories.pdf");
-  //     });
-  //   });
-  // };
+        doc.autoTable(exportColumns, categories);
+        doc.save("categories.pdf");
+      });
+    });
+  };
 
   const exportExcel = () => {
     import("xlsx").then((xlsx) => {
@@ -98,25 +99,41 @@ const CategoryDetails = ({ categories }) => {
     });
   };
   const header = (
-    <div className="d-flex align-items-center justify-content-end gap-2">
-      <Button
-        type="button"
-        icon="pi pi-file-excel"
-        severity="success"
-        rounded
-        className="rounded-circle"
-        onClick={exportExcel}
-        data-pr-tooltip="XLS"
-      />
-      {/* <Button
-        type="button"
-        icon="pi pi-file-pdf"
-        severity="warning"
-        rounded
-        className="rounded-circle"
-        onClick={exportPdf}
-        data-pr-tooltip="PDF"
-      /> */}
+    <div className="row">
+      <div className="col-sm-6 mb-2 d-flex align-items-center justify-content-md-start justify-content-center">
+        <button
+          type="button"
+          className="btn btn-outline-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#categorycreationmodal"
+        >
+          ADD NEW
+          <FontAwesomeIcon
+            icon={["fas", "plus"]}
+            style={{ marginLeft: "10px" }}
+          ></FontAwesomeIcon>
+        </button>
+      </div>
+      <div className="col-sm-6 mb-2 d-flex align-items-center justify-content-md-end justify-content-center gap-2">
+        <Button
+          type="button"
+          icon="pi pi-file-excel"
+          severity="success"
+          rounded
+          className="rounded-circle"
+          onClick={exportExcel}
+          data-pr-tooltip="XLS"
+        />
+        <Button
+          type="button"
+          icon="pi pi-file-pdf"
+          severity="warning"
+          rounded
+          className="rounded-circle"
+          onClick={exportPdf}
+          data-pr-tooltip="PDF"
+        />
+      </div>
     </div>
   );
   const subcategoryExpand = (data) => {
